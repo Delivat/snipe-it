@@ -475,7 +475,7 @@ class UsersController extends Controller
         if ($request->has('permissions')) {
             $permissions_array = $request->input('permissions');
 
-            // Strip out the individual superuser permission if the API user isn't a superadmin
+            // Strip out the superuser permission if the API user isn't a superadmin
             if (! Auth::user()->isSuperUser()) {
                 unset($permissions_array['superuser']);
             }
@@ -493,22 +493,31 @@ class UsersController extends Controller
           
         if ($user->save()) {
 
-            // Check if the request has groups passed and has a value, AND that the user us a superuser
-            if (($request->has('groups')) && (Auth::user()->isSuperUser())) {
+            // Check if the request has groups passed and has a value
+            if ($request->filled('groups')) {
 
-                $validator = Validator::make($request->only('groups'), [
+                $validator = Validator::make($request->all(), [
                     'groups.*' => 'integer|exists:permission_groups,id',
                 ]);
-
-                if ($validator->fails()) {
-                    return response()->json(Helper::formatStandardApiResponse('error', null, $validator->errors()));
+                
+                if ($validator->fails()){
+                    return response()->json(Helper::formatStandardApiResponse('error', null, $user->getErrors()));
                 }
 
-                // Sync the groups since the user is a superuser and the groups pass validation
-                $user->groups()->sync($request->input('groups'));
+                // Only save groups if the user is a superuser
+                if (Auth::user()->isSuperUser()) {
+                    $user->groups()->sync($request->input('groups'));
+                }
 
-
+            // The groups field has been passed but it is null, so we should blank it out
+            } elseif ($request->has('groups')) {
+                
+                // Only save groups if the user is a superuser
+                if (Auth::user()->isSuperUser()) {
+                    $user->groups()->sync($request->input('groups'));
+                }
             }
+
 
             return response()->json(Helper::formatStandardApiResponse('success', (new UsersTransformer)->transformUser($user), trans('admin/users/message.success.update')));
         }
