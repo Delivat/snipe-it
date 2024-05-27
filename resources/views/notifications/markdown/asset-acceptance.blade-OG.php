@@ -30,21 +30,8 @@
 @endif
 @endcomponent
 
-@if ($declined_date)
-@component('mail::panel')
-{{ trans('mail.please_provide_reason') }}
-<form action="{{ url('asset-refusal') }}" method="POST">
-    @csrf
-    <textarea name="comment" rows="4" cols="50" placeholder="{{ trans('mail.enter_reason') }}"></textarea>
-    <br>
-    <button type="submit">{{ trans('mail.submit') }}</button>
-</form>
-@endcomponent
-@endif
-
 {{ trans('mail.best_regards') }}
 
 {{ $snipeSettings->site_name }}
 
 @endcomponent
-

@@ -138,6 +138,10 @@ Route::group(['middleware' => 'auth'], function () {
 |
 */
 
+use App\Http\Controllers\AssetController;
+
+Route::post('asset-refusal', [AssetController::class, 'handleAssetRefusal']);
+
 Route::group(['middleware' => 'auth', 'prefix' => 'modals'], function () {
     Route::get('{type}/{itemId?}', [ModalController::class, 'show'] )->name('modal.show');
 });
